@@ -33,11 +33,13 @@ export function getCurrentEnv(): Partial<EnvironmentConfig> {
 
 // Get user's home directory
 export function getHomeDir(): string {
-  return os.homedir();
+  // Use environment variable HOME for testing purposes
+  return process.env.HOME || os.homedir();
 }
 
 // Get current shell
 export function getCurrentShell(): string {
+  // Use environment variable SHELL for testing purposes
   return process.env.SHELL || '/bin/bash';
 }
 

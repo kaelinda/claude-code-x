@@ -1,6 +1,6 @@
-# CCX - Claude Code API Provider and Model Switcher
+# Claude Code X (ccx)
 
-A powerful command-line tool for switching between different API providers and their corresponding models in Claude Code.
+A powerful CLI tool for managing and switching between different API providers for Claude Code with advanced configuration management and testing capabilities.
 
 ## Features
 

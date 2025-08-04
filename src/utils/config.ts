@@ -27,8 +27,33 @@ export interface ProvidersConfig {
 }
 
 export const defaultConfig: ProvidersConfig = {
-  current: '',
-  providers: {},
+  current: 'anthropic',
+  providers: {
+    anthropic: {
+      name: 'Anthropic',
+      api_key: 'sk-default-anthropic-key',
+      base_url: 'https://api.anthropic.com',
+      model: 'claude-3-5-sonnet-20241022'
+    },
+    zhipu: {
+      name: 'Zhipu',
+      api_key: 'sk-default-zhipu-key',
+      base_url: 'https://open.bigmodel.cn/v1',
+      model: 'glm-4'
+    },
+    kimi: {
+      name: 'Kimi',
+      api_key: 'sk-default-kimi-key',
+      base_url: 'https://api.moonshot.cn/v1',
+      model: 'moonshot-v1-8k'
+    },
+    anyrouter: {
+      name: 'Anyrouter',
+      api_key: 'sk-default-anyrouter-key',
+      base_url: 'https://api.anyrouter.ai/v1',
+      model: 'default-model'
+    }
+  },
   mcp: {}
 };
 
@@ -144,4 +169,61 @@ export async function getEnvStatus(): Promise<{
     active,
     provider: providersConfig.current || null,
   };
+}
+
+// Add new provider to configuration
+export async function addProvider(providerName: string, providerConfig: ProviderConfig): Promise<void> {
+  const config = await loadProvidersConfig();
+  const normalizedName = providerName.toLowerCase();
+  
+  // Validate provider configuration
+  if (!validateProviderConfig(providerConfig)) {
+    throw new Error('Invalid provider configuration');
+  }
+  
+  // Add or update provider
+  config.providers[normalizedName] = providerConfig;
+  
+  // If no current provider, set this as current
+  if (!config.current) {
+    config.current = normalizedName;
+  }
+  
+  await saveProvidersConfig(config);
+}
+
+// Remove provider from configuration
+export async function removeProvider(providerName: string): Promise<void> {
+  const config = await loadProvidersConfig();
+  const normalizedName = providerName.toLowerCase();
+  
+  // Ensure provider exists
+  if (!config.providers[normalizedName]) {
+    throw new Error(`Provider '${normalizedName}' not found`);
+  }
+  
+  // Remove the provider
+  delete config.providers[normalizedName];
+  
+  // If the removed provider was the current one, set another as current
+  if (config.current === normalizedName) {
+    const remainingProviders = Object.keys(config.providers);
+    config.current = remainingProviders.length > 0 ? remainingProviders[0] : '';
+  }
+  
+  await saveProvidersConfig(config);
+}
+
+// Convert provider config to environment variables (compatible with test)
+export function providerToEnv(provider: ProviderConfig): Partial<EnvironmentConfig> {
+  const envVars: Partial<EnvironmentConfig> = {
+    ANTHROPIC_AUTH_TOKEN: provider.api_key,
+    ANTHROPIC_BASE_URL: provider.base_url,
+  };
+  
+  if (provider.model) {
+    envVars.ANTHROPIC_MODEL = provider.model;
+  }
+  
+  return envVars;
 }
